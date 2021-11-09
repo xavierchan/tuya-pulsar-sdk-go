@@ -9,7 +9,7 @@ import (
 
 	"github.com/tuya/pulsar-client-go/core/manage"
 	"github.com/tuya/pulsar-client-go/core/msg"
-	"github.com/tuya/tuya-pulsar-sdk-go/pkg/tylog"
+	"github.com/xavierchan/tuya-pulsar-sdk-go/pkg/tylog"
 )
 
 type ConsumerConfig struct {
@@ -113,19 +113,19 @@ func (c *consumerImpl) Handler(ctx context.Context, handler PayloadHandler, m *M
 	spend = time.Since(now)
 	fields = append(fields, tylog.String("HandlePayload spend", spend.String()))
 	if err != nil {
-		tylog.Error("handle message failed", tylog.ErrorField(err),
+		tylog.Error("handle message failed so not to ack", tylog.ErrorField(err),
 			tylog.String("topic", m.Topic),
 		)
-	}
-
-	now = time.Now()
-	ackCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	err = c.csm.Ack(ackCtx, *m)
-	cancel()
-	spend = time.Since(now)
-	fields = append(fields, tylog.String("Ack spend", spend.String()))
-	if err != nil {
-		tylog.Error("ack failed", tylog.ErrorField(err))
+	} else {
+		now = time.Now()
+		ackCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		err = c.csm.Ack(ackCtx, *m)
+		cancel()
+		spend = time.Since(now)
+		fields = append(fields, tylog.String("Ack spend", spend.String()))
+		if err != nil {
+			tylog.Error("ack failed", tylog.ErrorField(err))
+		}
 	}
 
 }
